@@ -3,9 +3,9 @@
 class Usermodel extends Model
 {
 
-    function Usermodel()
+    function __construct()
     {
-        parent::Model();
+        parent::__construct();
     }
 
 	function users()
@@ -14,13 +14,13 @@ class Usermodel extends Model
 		$query = $this->db->query("SELECT * FROM `$user_table` ORDER BY `id` ASC");
 		return $query->result_array();
 	}
-	
+
 	function delete($id)
 	{
 		$user_table = user_table();
 		$this->db->query("DELETE FROM `$user_table` WHERE `id` = '$id'");
 	}
-	
+
 	function edit($id)
 	{
 		$this->form_validation->set_rules('username', 'Username', 'trim|required|min_length[4]|max_length[40]|callback_username_check');

@@ -2,20 +2,20 @@
 
 class Admin extends Application
 {
-	function Admin()
+	function __construct()
 	{
-		parent::Application();
+		parent::__construct();
 	}
-	
+
 	function index()
 	{
 		if(logged_in())
 		{
-			$this->auth->view('dashboard');
+			$this->ag_auth->view('dashboard');
 		}
 		else
 		{
-			$this->auth->login();
+			$this->login();
 		}
 	}
 
