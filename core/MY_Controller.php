@@ -14,7 +14,7 @@
 
 class Application extends CI_Controller
 {
-	function __construct()
+	public function __construct()
 	{
 		parent::__construct();
 
@@ -22,12 +22,12 @@ class Application extends CI_Controller
 
 		$this->load->library('form_validation');
 		$this->load->library('ag_auth');
-		$this->load->helper('url');
+		$this->load->helper(array('url', 'auth'));
 
 		$this->config->load('ag_auth');
 	}
 
-	function field_exists($value)
+	public function field_exists($value)
 	{
 		$field_name  = (valid_email($value)  ? 'email' : 'username');
 
@@ -47,7 +47,7 @@ class Application extends CI_Controller
 
 	} // function field_exists($value)
 
-	function register()
+	public function register()
 	{
 		$this->form_validation->set_rules('username', 'Username', 'required|min_length[6]|callback_field_exists');
 		$this->form_validation->set_rules('password', 'Password', 'required|min_length[6]|matches[conf_password]');
@@ -82,7 +82,7 @@ class Application extends CI_Controller
 	} // function register()
 
 
-	function login($redirect = NULL)
+	public function login($redirect = NULL)
 	{
 
 		if($redirect === NULL)
@@ -127,7 +127,7 @@ class Application extends CI_Controller
 
 	} // login()
 
-	function logout()
+	public function logout()
 	{
 		$this->session->sess_destroy();
 		redirect($this->config->item('auth_logout'));

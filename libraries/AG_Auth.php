@@ -16,18 +16,18 @@ ob_start();
 
 class AG_Auth
 {
-	var $CI; // The CI object
-	var $config; // The config items
-	
-	
+	public $CI; // The CI object
+	public $config; // The config items
+
+
 	/**
 	* @author Adam Griffiths
 	* @param array
 	*
-	* The constructor function loads the libraries dependancies and creates the 
+	* The constructor function loads the libraries dependancies and creates the
 	* login attempts cookie if it does not already exist.
 	*/
-	function __construct($config)
+	public function __construct($config)
 	{
 		log_message('debug', 'Auth Library Loaded');
 
@@ -42,7 +42,7 @@ class AG_Auth
 		$this->CI->load->model('ag_auth_model');
 
 		$this->CI->lang->load('ag_auth', 'english');
-		
+
 		if($this->logged_in() == FALSE)
 		{
 			if(!array_key_exists('login_attempts', $_COOKIE))
@@ -50,11 +50,11 @@ class AG_Auth
 				setcookie("login_attempts", 0, time()+900, '/');
 			}
 		}
-		
+
 	}
-	
-	
-	/** 
+
+
+	/**
 	* Restricts access to a page
 	*
 	* Takes a user level (e.g. admin, user etc) and restricts access to that user and above.
@@ -64,7 +64,7 @@ class AG_Auth
 	* @param string
 	* @return bool
 	*/
-	function restrict($group = NULL, $single = NULL)
+	public function restrict($group = NULL, $single = NULL)
 	{
 		if($group === NULL)
 		{
@@ -81,12 +81,12 @@ class AG_Auth
 		{
 			$level = $this->config['auth_groups'][$group];
 			$user_level = $this->CI->session->userdata('group');
-			
+
 			if($user_level > $level OR $single == TRUE && $user_level !== $level)
 			{
 				show_error($this->CI->lang->line('insufficient_privs'));
 			}
-			
+
 			return TRUE;
 		}
 		else
@@ -94,15 +94,15 @@ class AG_Auth
 			redirect($this->config['auth_incorrect_login'], 'refresh');
 		}
 	} // function restrict()
-	
-	
+
+
 	/**
 	* @author Adam Griffiths
 	* @return bool
 	*
 	* Checks the session data as to whether or not a user is logged in.
 	*/
-	function logged_in()
+	public function logged_in()
 	{
 		if($this->CI->session->userdata('logged_in') === TRUE)
 		{
@@ -113,8 +113,8 @@ class AG_Auth
 			return FALSE;
 		}
 	}
-	
-	
+
+
 	/**
 	* @author Adam Griffiths
 	* @param string
@@ -122,12 +122,12 @@ class AG_Auth
 	*
 	* Uses the encryption key set in application/config/config.php to salt the password passed.
 	*/
-	function salt($password)
+	public function salt($password)
 	{
 		return hash("haval256,5", $this->CI->config->item('encryption_key') . $password);
 	}
-	
-	
+
+
 	/**
 	* @author Adam Griffiths
 	* @param string
@@ -136,14 +136,14 @@ class AG_Auth
 	*
 	* Takes a username & optional username type (email/username) and returns the user data
 	*/
-	function get_user($username, $field_type = 'username')
+	public function get_user($username, $field_type = 'username')
 	{
 		$user = $this->CI->ag_auth_model->login_check($username, $field_type);
 
 		return $user;
 	}
-	
-	
+
+
 	/**
 	* @author Adam Griffiths
 	* @param string
@@ -153,27 +153,38 @@ class AG_Auth
 	*
 	* Creates a new user account
 	*/
-	function register($username, $password, $email)
+	public function register($username, $password, $email)
 	{
 		return $this->CI->ag_auth_model->register($username, $password, $email);
 	}
-	
-	
+
+
 	/**
 	* @author Adam Griffiths
 	* @param array
 	*
 	* Takes the user array, adds the logged_in portion and sets the session data from that.
 	*/
-	function login_user($user)
+	public function login_user($user)
 	{
 		$user['logged_in'] = TRUE;
-		
+
 		$this->CI->session->set_userdata($user);
 	}
-	
-	
-	/** 
+
+
+	/**
+	* Destroys the user session.
+	*
+	* @access public
+	*/
+	public function logout()
+	{
+		$this->session->sess_destroy();
+		redirect($this->config->item('auth_logout'));
+	}
+
+	/**
 	* Generate a new token/identifier from random.org
 	*
 	* @author Adam Griffiths
@@ -201,7 +212,7 @@ class AG_Auth
 	    // No love either way, generate a random string ourselves
 	    $length = 20;
 	      $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	      $token = ”;    
+	      $token = ”;
 	      for ($i = 0; $i < $length; $i++) {
 	          $token .= $characters[mt_rand(0, strlen($characters)-1)];
 	      }
@@ -214,9 +225,9 @@ class AG_Auth
 
 	    setcookie("logged_in", $identifier, time()+3600, '/');
 	  }
-	
-	
-	/** 
+
+
+	/**
 	* Verify that a user has a cookie, if not generate one. If the cookie doesn't match the database, log the user out and show them an error.
 	*
 	* @access private
@@ -228,16 +239,16 @@ class AG_Auth
 		{
 			$username = $this->CI->session->userdata('username');
 			$userdata = $this->CI->db->query("SELECT * FROM `$this->user_table` WHERE `username` = '$username'");
-			
+
 			$result = $userdata->row();
 
 			$identifier = $result->username . $result->token;
 			$identifier = $this->_salt($identifier);
-			
+
 			if($identifier !== $_COOKIE['logged_in'])
 			{
 				$this->CI->session->sess_destroy();
-				
+
 				show_error($this->CI->lang->line('logout_perms_error'));
 			}
 		}
@@ -246,25 +257,24 @@ class AG_Auth
 			$this->_generate();
 		}
 	}
-	
-	
-	/** 
+
+
+	/**
 	* Load an auth specific view
 	*
-	* @access private
 	* @param string
 	*/
-	function view($page, $params = NULL)
+	public function view($page, $params = NULL)
 	{
 		if($params !== NULL)
 		{
 			$data['data'] = $params;
 		}
-		
+
 		$data['page'] = $page;
 		$this->CI->load->view($this->config['auth_views_root'].'index', $data);
 	}
-	
+
 
 }
 
